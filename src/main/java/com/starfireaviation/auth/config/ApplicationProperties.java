@@ -11,6 +11,8 @@ public class ApplicationProperties {
 
     private String clientId;
 
+    private String registeredClientId;
+
     private String clientSecret;
 
     private String authorizedRedirect;

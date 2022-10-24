@@ -71,7 +71,7 @@ public class ServiceConfig {
     public RegisteredClientRepository registeredClientRepository(final ApplicationProperties props,
                                                                  final JdbcTemplate jdbcTemplate,
                                                                  final TokenSettings tokenSettings) {
-        RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
+        RegisteredClient registeredClient = RegisteredClient.withId(props.getRegisteredClientId())
                 .clientId(props.getClientId())
                 .clientSecret(passwordEncoder.encode(props.getClientSecret()))
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
