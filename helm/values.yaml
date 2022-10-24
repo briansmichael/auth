@@ -32,7 +32,7 @@ ingress:
         - path: /
           pathType: ImplementationSpecific
   tls:
-    - secretName: auth-tls
+    - secretName: letsencrypt-certs
       hosts:
         - auth.starfireaviation.com
 resources:
