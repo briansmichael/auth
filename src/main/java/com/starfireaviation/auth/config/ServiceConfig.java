@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
@@ -17,18 +18,21 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
-//import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
-import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
+//import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.config.ProviderSettings;
+import org.springframework.security.oauth2.server.authorization.config.TokenSettings;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Duration;
 import java.util.UUID;
 
 @EnableConfigurationProperties({ ApplicationProperties.class })
@@ -58,10 +62,15 @@ public class ServiceConfig {
     /**
      * RegisteredClientRepository.
      *
+     * @param props ApplicationProperties
+     * @param jdbcTemplate JdbcTemplate
+     * @param tokenSettings TokenSettings
      * @return RegisteredClientRepository
      */
     @Bean
-    public RegisteredClientRepository registeredClientRepository(final ApplicationProperties props) {
+    public RegisteredClientRepository registeredClientRepository(final ApplicationProperties props,
+                                                                 final JdbcTemplate jdbcTemplate,
+                                                                 final TokenSettings tokenSettings) {
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId(props.getClientId())
                 .clientSecret(passwordEncoder.encode(props.getClientSecret()))
@@ -69,6 +78,7 @@ public class ServiceConfig {
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.PASSWORD)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                .tokenSettings(tokenSettings)
                 .redirectUri(props.getLoginRedirect())
                 .redirectUri(props.getAuthorizedRedirect())
                 .scope(OidcScopes.OPENID)
@@ -76,8 +86,22 @@ public class ServiceConfig {
                 .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
                 .build();
 
+        JdbcRegisteredClientRepository registeredClientRepository =
+                new JdbcRegisteredClientRepository(jdbcTemplate);
+        registeredClientRepository.save(registeredClient);
+        return registeredClientRepository;
+        //return new InMemoryRegisteredClientRepository(registeredClient);
+    }
 
-        return new InMemoryRegisteredClientRepository(registeredClient);
+    /**
+     * JwtDecoder.
+     *
+     * @param jwkSource JWKSource
+     * @return JwtDecoder
+     */
+    @Bean
+    public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
+        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
     }
 
     /**
@@ -133,6 +157,18 @@ public class ServiceConfig {
     public ProviderSettings providerSettings() {
         return ProviderSettings.builder()
                 .issuer("https://auth.starfireaviation.com")
+                .build();
+    }
+
+    /**
+     * TokenSettings.
+     *
+     * @return TokenSettings
+     */
+    @Bean
+    public TokenSettings tokenSettings() {
+        return TokenSettings.builder()
+                .accessTokenTimeToLive(Duration.ofMinutes(30L))
                 .build();
     }
 }
