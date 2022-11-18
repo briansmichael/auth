@@ -1,9 +1,26 @@
+/*
+ *  Copyright (C) 2022 Starfire Aviation, LLC
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package com.starfireaviation.auth.config;
 
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.starfireaviation.common.CommonConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -100,7 +117,7 @@ public class ServiceConfig {
      * @return JwtDecoder
      */
     @Bean
-    public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
+    public JwtDecoder jwtDecoder(final JWKSource<SecurityContext> jwkSource) {
         return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
     }
 
@@ -140,7 +157,7 @@ public class ServiceConfig {
         KeyPair keyPair;
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(2048);
+            keyPairGenerator.initialize(CommonConstants.TWO_THOUSAND_FORTY_EIGHT);
             keyPair = keyPairGenerator.generateKeyPair();
         } catch (Exception ex) {
             throw new IllegalStateException(ex);
@@ -168,7 +185,7 @@ public class ServiceConfig {
     @Bean
     public TokenSettings tokenSettings() {
         return TokenSettings.builder()
-                .accessTokenTimeToLive(Duration.ofMinutes(30L))
+                .accessTokenTimeToLive(Duration.ofMinutes(CommonConstants.THIRTY_LONG))
                 .build();
     }
 }

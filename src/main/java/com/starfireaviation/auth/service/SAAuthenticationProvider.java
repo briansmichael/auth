@@ -1,3 +1,19 @@
+/*
+ *  Copyright (C) 2022 Starfire Aviation, LLC
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package com.starfireaviation.auth.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +53,7 @@ public class SAAuthenticationProvider implements AuthenticationProvider {
         final String username = authentication.getName();
         final String password = authentication.getCredentials().toString();
         final UserDetails user = saUserDetailsService.loadUserByUsername(username);
-        return checkPassword(user,password);
+        return checkPassword(user, password);
     }
 
     /**
@@ -48,7 +64,7 @@ public class SAAuthenticationProvider implements AuthenticationProvider {
      * @return Authentication
      */
     private Authentication checkPassword(final UserDetails user, final String rawPassword) {
-        if(passwordEncoder.matches(rawPassword, user.getPassword())) {
+        if (passwordEncoder.matches(rawPassword, user.getPassword())) {
             return new UsernamePasswordAuthenticationToken(user.getUsername(),
                     user.getPassword(),
                     user.getAuthorities());
